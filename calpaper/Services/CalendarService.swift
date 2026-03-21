@@ -25,6 +25,10 @@ final class CalendarService {
         }
     }
 
+    func refreshStatus() {
+        authorizationStatus = EKEventStore.authorizationStatus(for: .event)
+    }
+
     func loadCalendars() {
         availableCalendars = store.calendars(for: .event)
     }
