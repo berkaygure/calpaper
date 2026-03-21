@@ -120,6 +120,11 @@ if [ -n "$SIGNATURE" ]; then
     ED_SIG=$(echo "$SIGNATURE" | grep -o 'edSignature="[^"]*"' | sed 's/edSignature="//;s/"$//' || echo "")
 fi
 
+ENCLOSURE_SIG=""
+if [ -n "$ED_SIG" ]; then
+    ENCLOSURE_SIG="sparkle:edSignature=\"${ED_SIG}\""
+fi
+
 cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -147,7 +152,7 @@ cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
         url="${BASE_URL}/${DMG_NAME}"
         length="${DMG_SIZE}"
         type="application/octet-stream"
-        ${ED_SIG:+sparkle:edSignature="${ED_SIG}"}
+        ${ENCLOSURE_SIG}
       />
     </item>
   </channel>

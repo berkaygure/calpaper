@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Calpaper Updates</title>
-    <link>https://berkaygure.github.io/calpaper/appcast.xml</link>
+    <link>https://raw.githubusercontent.com/berkaygure/calpaper/main/appcast.xml</link>
     <language>en</language>
     <item>
       <title>Calpaper v1.0</title>
-      <pubDate>Sat, 21 Mar 2026 12:56:41 +0300</pubDate>
+      <pubDate>Sat, 21 Mar 2026 13:16:22 +0300</pubDate>
       <sparkle:version>1.0</sparkle:version>
       <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
@@ -22,9 +22,9 @@
       ]]></description>
       <enclosure
         url="https://github.com/berkaygure/calpaper/releases/download/v1.0/Calpaper-v1.0.dmg"
-        length="1691342"
+        length="1691331"
         type="application/octet-stream"
-        sparkle:edSignature="92ZEowlLmr0FuD1Z9odxNTYE8hQrUXBd1bJ+O4SwJgfsZfdCThqnjKil74oY7AJB3Z2jZI0Xq+UrPQF1saNOBQ=="
+        sparkle:edSignature="6YdYTcsgs/fjAGQpQrFRWV7Ba8OgLU5BGv1APCEF3x0pXte7/+qi6G54f5zpty+bXgjzFy8olryVfOYCTm6mAw=="
       />
     </item>
   </channel>
