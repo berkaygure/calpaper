@@ -25,6 +25,7 @@ struct MenuBarPopover: View {
                 Spacer()
 
                 Button {
+                    NSApp.activate(ignoringOtherApps: true)
                     openSettings()
                 } label: {
                     Image(systemName: "gear")
