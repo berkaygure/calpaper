@@ -56,18 +56,23 @@ struct AppearanceSettingsView: View {
                     }
 
                     Section("Theme") {
-                        ThemeGridView(themes: themes, onSelect: { theme in
-                            if isPerDisplay {
-                                let base = profile ?? DisplayProfile.from(settings: settings)
-                                profile = base.applyTheme(theme)
-                                saveProfile()
-                            } else {
-                                settings.applyTheme(theme)
+                        ThemeGridView(
+                            themes: themes,
+                            activeThemeID: activeThemeID(settings),
+                            onSelect: { theme in
+                                if isPerDisplay {
+                                    let base = profile ?? DisplayProfile.from(settings: settings)
+                                    profile = base.applyTheme(theme)
+                                    saveProfile()
+                                } else {
+                                    settings.applyTheme(theme)
+                                }
+                            },
+                            onDelete: { theme in
+                                ThemeStore.deleteTheme(id: theme.id)
+                                themes = ThemeStore.allThemes()
                             }
-                        }, onDelete: { theme in
-                            ThemeStore.deleteTheme(id: theme.id)
-                            themes = ThemeStore.allThemes()
-                        })
+                        )
 
                         Button("Save Current as Theme...") {
                             newThemeName = ""
@@ -192,6 +197,19 @@ struct AppearanceSettingsView: View {
             }
             .padding(24)
         }
+    }
+
+    // MARK: - Active theme detection
+
+    private func activeThemeID(_ settings: CalendarSettings) -> String? {
+        for theme in themes {
+            if isPerDisplay {
+                if let profile, theme.matchesColors(of: profile) { return theme.id }
+            } else {
+                if theme.matchesColors(of: settings) { return theme.id }
+            }
+        }
+        return nil
     }
 
     // MARK: - Bindings that route to profile or global settings
@@ -376,6 +394,7 @@ struct AppearanceSettingsView: View {
 
 struct ThemeGridView: View {
     let themes: [CalendarTheme]
+    var activeThemeID: String?
     let onSelect: (CalendarTheme) -> Void
     let onDelete: (CalendarTheme) -> Void
 
@@ -384,7 +403,7 @@ struct ThemeGridView: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 8) {
             ForEach(themes) { theme in
-                ThemeSwatchView(theme: theme)
+                ThemeSwatchView(theme: theme, isActive: theme.id == activeThemeID)
                     .onTapGesture { onSelect(theme) }
                     .contextMenu {
                         if !theme.isBuiltIn {
@@ -400,6 +419,7 @@ struct ThemeGridView: View {
 
 struct ThemeSwatchView: View {
     let theme: CalendarTheme
+    var isActive: Bool = false
 
     var body: some View {
         VStack(spacing: 2) {
@@ -424,11 +444,13 @@ struct ThemeSwatchView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                    .stroke(isActive ? Color.accentColor : Color.primary.opacity(0.15),
+                            lineWidth: isActive ? 2.5 : 1)
             )
 
             Text(theme.name)
-                .font(.caption2)
+                .font(isActive ? .caption2.bold() : .caption2)
+                .foregroundStyle(isActive ? Color.accentColor : .primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
