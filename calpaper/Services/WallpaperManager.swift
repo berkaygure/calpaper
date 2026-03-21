@@ -58,7 +58,13 @@ final class WallpaperManager {
             }
         }
 
-        let screens = displayManager.screens
+        let allScreens = displayManager.screens
+        let enabledIDs = settings.enabledDisplayIDs
+        // Empty set = all displays enabled (default behavior)
+        let screens = allScreens.filter { screen in
+            enabledIDs.isEmpty || enabledIDs.contains(screen.displayID)
+        }
+
         var imageURLs: [NSScreen: URL] = [:]
         let timestamp = Int(Date().timeIntervalSince1970)
 
@@ -68,7 +74,6 @@ final class WallpaperManager {
 
             let image = renderer.render(month: month, screenSize: size, scaleFactor: scaleFactor, todayEvents: todayEvents)
 
-            // Unique filename so macOS doesn't serve a cached wallpaper
             let fileName = "wallpaper_\(index)_\(timestamp).png"
             let fileURL = wallpapersDir.appendingPathComponent(fileName)
 

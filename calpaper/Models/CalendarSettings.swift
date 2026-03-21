@@ -83,6 +83,11 @@ final class CalendarSettings {
         didSet { save() }
     }
 
+    // Displays
+    var enabledDisplayIDs: Set<String> {
+        didSet { save() }
+    }
+
     // General
     var launchAtLogin: Bool {
         didSet { save() }
@@ -111,6 +116,7 @@ final class CalendarSettings {
         showOnlyCurrentMonth = UserDefaults.standard.object(forKey: "calpaper_showOnlyCurrentMonth") as? Bool ?? false
         showDayNumbers = UserDefaults.standard.object(forKey: "calpaper_showDayNumbers") as? Bool ?? true
         cellCornerRadius = UserDefaults.standard.object(forKey: "calpaper_cellCornerRadius") as? CGFloat ?? 0.5
+        enabledDisplayIDs = Set(UserDefaults.standard.stringArray(forKey: "calpaper_enabledDisplayIDs") ?? [])
         selectedCalendarIDs = Set(UserDefaults.standard.stringArray(forKey: "calpaper_selectedCalendarIDs") ?? [])
         showEvents = UserDefaults.standard.object(forKey: "calpaper_showEvents") as? Bool ?? true
         launchAtLogin = UserDefaults.standard.object(forKey: "calpaper_launchAtLogin") as? Bool ?? false
@@ -135,6 +141,7 @@ final class CalendarSettings {
         defaults.set(showOnlyCurrentMonth, forKey: "\(prefix)showOnlyCurrentMonth")
         defaults.set(showDayNumbers, forKey: "\(prefix)showDayNumbers")
         defaults.set(cellCornerRadius, forKey: "\(prefix)cellCornerRadius")
+        defaults.set(Array(enabledDisplayIDs), forKey: "\(prefix)enabledDisplayIDs")
         defaults.set(Array(selectedCalendarIDs), forKey: "\(prefix)selectedCalendarIDs")
         defaults.set(showEvents, forKey: "\(prefix)showEvents")
         defaults.set(launchAtLogin, forKey: "\(prefix)launchAtLogin")
