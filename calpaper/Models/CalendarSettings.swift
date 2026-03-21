@@ -89,6 +89,9 @@ final class CalendarSettings {
     }
 
     // General
+    var hideMenuBarIcon: Bool {
+        didSet { save() }
+    }
     var launchAtLogin: Bool {
         didSet { save() }
     }
@@ -119,6 +122,7 @@ final class CalendarSettings {
         enabledDisplayIDs = Set(UserDefaults.standard.stringArray(forKey: "calpaper_enabledDisplayIDs") ?? [])
         selectedCalendarIDs = Set(UserDefaults.standard.stringArray(forKey: "calpaper_selectedCalendarIDs") ?? [])
         showEvents = UserDefaults.standard.object(forKey: "calpaper_showEvents") as? Bool ?? true
+        hideMenuBarIcon = UserDefaults.standard.object(forKey: "calpaper_hideMenuBarIcon") as? Bool ?? false
         launchAtLogin = UserDefaults.standard.object(forKey: "calpaper_launchAtLogin") as? Bool ?? false
     }
 
@@ -144,6 +148,7 @@ final class CalendarSettings {
         defaults.set(Array(enabledDisplayIDs), forKey: "\(prefix)enabledDisplayIDs")
         defaults.set(Array(selectedCalendarIDs), forKey: "\(prefix)selectedCalendarIDs")
         defaults.set(showEvents, forKey: "\(prefix)showEvents")
+        defaults.set(hideMenuBarIcon, forKey: "\(prefix)hideMenuBarIcon")
         defaults.set(launchAtLogin, forKey: "\(prefix)launchAtLogin")
     }
 

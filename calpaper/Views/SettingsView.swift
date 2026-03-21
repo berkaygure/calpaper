@@ -31,6 +31,12 @@ struct GeneralSettingsView: View {
                     .onChange(of: settings.launchAtLogin) { _, newValue in
                         updateLoginItem(enabled: newValue)
                     }
+                Toggle("Hide Menu Bar Icon", isOn: $settings.hideMenuBarIcon)
+                if settings.hideMenuBarIcon {
+                    Text("The menu bar icon is hidden. To open settings again, relaunch Calpaper from Applications.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
             }
 
             Section("Updates") {
