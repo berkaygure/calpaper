@@ -1,5 +1,17 @@
 import AppKit
 
+extension NSScreen {
+    var displayID: String {
+        let key = NSDeviceDescriptionKey("NSScreenNumber")
+        let id = deviceDescription[key] as? CGDirectDisplayID ?? 0
+        return "\(id)"
+    }
+
+    var displayName: String {
+        localizedName
+    }
+}
+
 struct DisplayManager {
     func setWallpaper(imageURL: URL, for screen: NSScreen) throws {
         try NSWorkspace.shared.setDesktopImageURL(imageURL, for: screen, options: [
