@@ -22,54 +22,10 @@ struct GeneralSettingsView: View {
     @Environment(WallpaperManager.self) private var wallpaperManager
     @Environment(UpdaterService.self) private var updaterService
 
-    @State private var screens: [NSScreen] = NSScreen.screens
-
     var body: some View {
         @Bindable var settings = wallpaperManager.settings
 
         Form {
-            Section("Displays") {
-                if screens.count <= 1 {
-                    Text("Only one display connected.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("Choose which displays get the calendar wallpaper.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    ForEach(screens, id: \.displayID) { screen in
-                        let id = screen.displayID
-                        let isMain = screen == NSScreen.main
-                        Toggle(isOn: Binding(
-                            get: {
-                                settings.enabledDisplayIDs.isEmpty || settings.enabledDisplayIDs.contains(id)
-                            },
-                            set: { enabled in
-                                // First use: populate with all display IDs
-                                if settings.enabledDisplayIDs.isEmpty {
-                                    settings.enabledDisplayIDs = Set(screens.map(\.displayID))
-                                }
-                                if enabled {
-                                    settings.enabledDisplayIDs.insert(id)
-                                } else {
-                                    settings.enabledDisplayIDs.remove(id)
-                                }
-                            }
-                        )) {
-                            HStack {
-                                Image(systemName: isMain ? "display" : "rectangle.on.rectangle")
-                                VStack(alignment: .leading) {
-                                    Text(screen.displayName)
-                                    Text("\(Int(screen.frame.width))x\(Int(screen.frame.height))\(isMain ? " — Main" : "")")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             Section("Startup") {
                 Toggle("Launch at Login", isOn: $settings.launchAtLogin)
                     .onChange(of: settings.launchAtLogin) { _, newValue in
@@ -95,9 +51,6 @@ struct GeneralSettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
-            screens = NSScreen.screens
-        }
     }
 
     private func updateLoginItem(enabled: Bool) {
