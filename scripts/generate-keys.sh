@@ -16,12 +16,13 @@ mkdir -p "${SPARKLE_BIN}"
 if [ ! -f "${SPARKLE_BIN}/generate_keys" ]; then
     echo ">>> Downloading Sparkle tools..."
     SPARKLE_TAG="2.6.4"
+    TMPDIR=$(mktemp -d)
     curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_TAG}/Sparkle-${SPARKLE_TAG}.tar.xz" \
-        | tar -xJ -C "${SPARKLE_BIN}" --include='*/bin/generate_keys' --include='*/bin/sign_update' --strip-components=1 2>/dev/null || true
-
-    if [ ! -f "${SPARKLE_BIN}/generate_keys" ] && [ -f "${SPARKLE_BIN}/bin/generate_keys" ]; then
-        mv "${SPARKLE_BIN}/bin/"* "${SPARKLE_BIN}/" 2>/dev/null || true
-    fi
+        -o "${TMPDIR}/sparkle.tar.xz"
+    tar -xf "${TMPDIR}/sparkle.tar.xz" -C "${TMPDIR}" ./bin/generate_keys ./bin/sign_update
+    mv "${TMPDIR}/bin/generate_keys" "${SPARKLE_BIN}/"
+    mv "${TMPDIR}/bin/sign_update" "${SPARKLE_BIN}/"
+    rm -rf "${TMPDIR}"
 fi
 
 if [ ! -f "${SPARKLE_BIN}/generate_keys" ]; then

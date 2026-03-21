@@ -3,22 +3,15 @@ set -euo pipefail
 
 # ============================================================
 # Calpaper Release Script
-# Creates a signed DMG and updates the Sparkle appcast.
+# Creates a signed DMG and generates the Sparkle appcast.
 #
 # Usage:
 #   ./scripts/create-release.sh [version]
-#
-# Prerequisites:
-#   1. Generate a Sparkle EdDSA key pair (one-time):
-#        ./scripts/generate-keys.sh
-#   2. Set SUPublicEDKey in Info.plist (done by generate-keys.sh)
-#   3. Host appcast.xml and DMGs at SUFeedURL location
 # ============================================================
 
 VERSION="${1:-}"
 if [ -z "$VERSION" ]; then
-    # Read from Xcode project
-    VERSION=$(grep 'MARKETING_VERSION' calpaper.xcodeproj/project.pbxproj | head -1 | sed 's/.*= //;s/;//')
+    VERSION=$(grep 'MARKETING_VERSION' calpaper.xcodeproj/project.pbxproj | head -1 | sed 's/.*= //;s/;//;s/ //g')
     echo "Using version from project: ${VERSION}"
 fi
 
@@ -26,17 +19,31 @@ APP_NAME="Calpaper"
 SCHEME="calpaper"
 BUILD_DIR="$(pwd)/build"
 RELEASE_DIR="$(pwd)/releases"
+SPARKLE_BIN="${BUILD_DIR}/sparkle-tools"
 ARCHIVE_PATH="${BUILD_DIR}/${APP_NAME}.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/export"
 DMG_NAME="${APP_NAME}-v${VERSION}.dmg"
 DMG_PATH="${RELEASE_DIR}/${DMG_NAME}"
-APPCAST_DIR="${RELEASE_DIR}"
 
 echo "=== Creating ${APP_NAME} v${VERSION} Release ==="
 
 # Clean
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}" "${RELEASE_DIR}"
+
+# --- Download Sparkle tools if needed ---
+if [ ! -f "${SPARKLE_BIN}/sign_update" ]; then
+    echo ">>> Downloading Sparkle tools..."
+    SPARKLE_TAG="2.6.4"
+    TMPDIR_DL=$(mktemp -d)
+    curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_TAG}/Sparkle-${SPARKLE_TAG}.tar.xz" \
+        -o "${TMPDIR_DL}/sparkle.tar.xz"
+    mkdir -p "${SPARKLE_BIN}"
+    tar -xf "${TMPDIR_DL}/sparkle.tar.xz" -C "${TMPDIR_DL}" ./bin/sign_update ./bin/generate_keys
+    mv "${TMPDIR_DL}/bin/sign_update" "${SPARKLE_BIN}/"
+    mv "${TMPDIR_DL}/bin/generate_keys" "${SPARKLE_BIN}/"
+    rm -rf "${TMPDIR_DL}"
+fi
 
 # --- Step 1: Archive ---
 echo ">>> Archiving..."
@@ -89,38 +96,31 @@ hdiutil create \
     -format UDZO \
     "${DMG_PATH}"
 
-# --- Step 4: Generate Sparkle signature ---
-echo ">>> Generating Sparkle signature..."
-SPARKLE_BIN="${BUILD_DIR}/sparkle-tools"
-
-# Download Sparkle tools if needed
-if [ ! -f "${SPARKLE_BIN}/sign_update" ]; then
-    echo ">>> Downloading Sparkle tools..."
-    mkdir -p "${SPARKLE_BIN}"
-    SPARKLE_TAG="2.6.4"
-    curl -sL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_TAG}/Sparkle-${SPARKLE_TAG}.tar.xz" \
-        | tar -xJ -C "${SPARKLE_BIN}" --include='*/bin/sign_update' --include='*/bin/generate_keys' --strip-components=1 2>/dev/null || true
-
-    # Try alternate path
-    if [ ! -f "${SPARKLE_BIN}/sign_update" ] && [ -f "${SPARKLE_BIN}/bin/sign_update" ]; then
-        mv "${SPARKLE_BIN}/bin/"* "${SPARKLE_BIN}/" 2>/dev/null || true
-    fi
-fi
-
-DMG_SIZE=$(stat -f%z "${DMG_PATH}")
+# --- Step 4: Sign with Sparkle ---
+echo ">>> Signing DMG with Sparkle EdDSA key..."
 SIGNATURE=""
-
 if [ -f "${SPARKLE_BIN}/sign_update" ]; then
-    SIGNATURE=$("${SPARKLE_BIN}/sign_update" "${DMG_PATH}" 2>/dev/null || echo "")
+    SIGNATURE=$("${SPARKLE_BIN}/sign_update" "${DMG_PATH}" 2>&1 || echo "SIGN_FAILED")
+    if [[ "$SIGNATURE" == *"SIGN_FAILED"* ]] || [[ "$SIGNATURE" == *"Error"* ]]; then
+        echo "WARNING: Could not sign. Run ./scripts/generate-keys.sh first."
+        SIGNATURE=""
+    else
+        echo "    Signature: ${SIGNATURE}"
+    fi
 fi
 
 # --- Step 5: Generate appcast.xml ---
 echo ">>> Generating appcast.xml..."
-
-# Base URL — update this to your actual hosting location
+DMG_SIZE=$(stat -f%z "${DMG_PATH}")
 BASE_URL="https://github.com/berkaygure/calpaper/releases/download/v${VERSION}"
 
-cat > "${APPCAST_DIR}/appcast.xml" << APPCAST
+# Parse edSignature and length from sign_update output
+ED_SIG=""
+if [ -n "$SIGNATURE" ]; then
+    ED_SIG=$(echo "$SIGNATURE" | grep -o 'edSignature="[^"]*"' | sed 's/edSignature="//;s/"$//' || echo "")
+fi
+
+cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
@@ -140,14 +140,14 @@ cat > "${APPCAST_DIR}/appcast.xml" << APPCAST
           <li>10 built-in color themes</li>
           <li>Progress tracker mode</li>
           <li>EventKit integration</li>
-          <li>Auto-update support via Sparkle</li>
+          <li>Auto-update support</li>
         </ul>
       ]]></description>
       <enclosure
         url="${BASE_URL}/${DMG_NAME}"
         length="${DMG_SIZE}"
         type="application/octet-stream"
-        ${SIGNATURE:+sparkle:edSignature=\"$(echo "$SIGNATURE" | grep -o 'sparkle:edSignature="[^"]*"' | sed 's/sparkle:edSignature="//' | sed 's/"$//')\"}
+        ${ED_SIG:+sparkle:edSignature="${ED_SIG}"}
       />
     </item>
   </channel>
@@ -159,12 +159,11 @@ echo "=== Release v${VERSION} Ready ==="
 echo ""
 echo "Files:"
 echo "  DMG:     ${DMG_PATH} ($(du -h "${DMG_PATH}" | cut -f1))"
-echo "  Appcast: ${APPCAST_DIR}/appcast.xml"
+echo "  Appcast: ${RELEASE_DIR}/appcast.xml"
 echo ""
-echo "To publish:"
-echo "  1. Create GitHub release: gh release create v${VERSION} '${DMG_PATH}'"
-echo "  2. Host appcast.xml at: https://berkaygure.github.io/calpaper/appcast.xml"
-echo "     (or update SUFeedURL in Info.plist to match your hosting)"
+echo "To publish on GitHub:"
+echo "  git add calpaper/Info.plist && git commit -m 'release: v${VERSION}'"
+echo "  git tag v${VERSION} && git push && git push --tags"
+echo "  gh release create v${VERSION} '${DMG_PATH}' --title 'Calpaper v${VERSION}'"
 echo ""
-echo "If using GitHub Releases for the appcast too:"
-echo "  gh release create v${VERSION} '${DMG_PATH}' '${APPCAST_DIR}/appcast.xml'"
+echo "Then host appcast.xml at your SUFeedURL (GitHub Pages or raw URL)."
