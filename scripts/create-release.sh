@@ -125,7 +125,7 @@ cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Calpaper Updates</title>
-    <link>https://berkaygure.github.io/calpaper/appcast.xml</link>
+    <link>https://raw.githubusercontent.com/berkaygure/calpaper/main/appcast.xml</link>
     <language>en</language>
     <item>
       <title>Calpaper v${VERSION}</title>
@@ -154,6 +154,9 @@ cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
 </rss>
 APPCAST
 
+# Also copy to repo root for raw.githubusercontent serving
+cp "${RELEASE_DIR}/appcast.xml" "$(pwd)/appcast.xml"
+
 echo ""
 echo "=== Release v${VERSION} Ready ==="
 echo ""
@@ -162,8 +165,6 @@ echo "  DMG:     ${DMG_PATH} ($(du -h "${DMG_PATH}" | cut -f1))"
 echo "  Appcast: ${RELEASE_DIR}/appcast.xml"
 echo ""
 echo "To publish on GitHub:"
-echo "  git add calpaper/Info.plist && git commit -m 'release: v${VERSION}'"
+echo "  git add appcast.xml && git commit -m 'release: v${VERSION}'"
 echo "  git tag v${VERSION} && git push && git push --tags"
 echo "  gh release create v${VERSION} '${DMG_PATH}' --title 'Calpaper v${VERSION}'"
-echo ""
-echo "Then host appcast.xml at your SUFeedURL (GitHub Pages or raw URL)."

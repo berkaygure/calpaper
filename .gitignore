@@ -3,6 +3,8 @@ build/
 releases/
 DerivedData/
 
+# Keep appcast.xml in repo (served via raw.githubusercontent)
+
 # Xcode user data
 *.xcuserstate
 xcuserdata/

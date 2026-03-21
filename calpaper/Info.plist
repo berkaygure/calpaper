@@ -5,7 +5,7 @@
 	<key>NSCalendarsUsageDescription</key>
 	<string>Calpaper needs access to your calendars to display events on the calendar wallpaper.</string>
 	<key>SUFeedURL</key>
-	<string>https://berkaygure.github.io/calpaper/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/berkaygure/calpaper/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>4o2eGXaLylZ6SArdDQChtjUjxoVS7Uth5DFnuKYM3y8=</string>
 	<key>SUEnableAutomaticChecks</key>

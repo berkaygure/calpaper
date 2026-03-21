@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Calpaper Updates</title>
+    <link>https://berkaygure.github.io/calpaper/appcast.xml</link>
+    <language>en</language>
+    <item>
+      <title>Calpaper v1.0</title>
+      <pubDate>Sat, 21 Mar 2026 12:56:41 +0300</pubDate>
+      <sparkle:version>1.0</sparkle:version>
+      <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+        <h2>What's New in v1.0</h2>
+        <ul>
+          <li>Calendar wallpaper with curved split design</li>
+          <li>10 built-in color themes</li>
+          <li>Progress tracker mode</li>
+          <li>EventKit integration</li>
+          <li>Auto-update support</li>
+        </ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/berkaygure/calpaper/releases/download/v1.0/Calpaper-v1.0.dmg"
+        length="1691342"
+        type="application/octet-stream"
+        sparkle:edSignature="92ZEowlLmr0FuD1Z9odxNTYE8hQrUXBd1bJ+O4SwJgfsZfdCThqnjKil74oY7AJB3Z2jZI0Xq+UrPQF1saNOBQ=="
+      />
+    </item>
+  </channel>
+</rss>
