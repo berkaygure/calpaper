@@ -13,6 +13,26 @@ struct CalendarTheme: Codable, Identifiable, Equatable {
     var captionFontName: String
     var isBuiltIn: Bool
 
+    func matchesColors(of settings: CalendarSettings) -> Bool {
+        backgroundColorHex == settings.backgroundColorHex &&
+        textColorHex == settings.textColorHex &&
+        highlightColorHex == settings.highlightColorHex &&
+        weekdayColorHex == settings.weekdayColorHex &&
+        pastDayColorHex == settings.pastDayColorHex &&
+        futureDayColorHex == settings.futureDayColorHex &&
+        panelColorHex == settings.panelColorHex
+    }
+
+    func matchesColors(of profile: DisplayProfile) -> Bool {
+        backgroundColorHex == profile.backgroundColorHex &&
+        textColorHex == profile.textColorHex &&
+        highlightColorHex == profile.highlightColorHex &&
+        weekdayColorHex == profile.weekdayColorHex &&
+        pastDayColorHex == profile.pastDayColorHex &&
+        futureDayColorHex == profile.futureDayColorHex &&
+        panelColorHex == profile.panelColorHex
+    }
+
     static let builtInThemes: [CalendarTheme] = [
         // Dark elegant — Catppuccin Mocha inspired
         CalendarTheme(
