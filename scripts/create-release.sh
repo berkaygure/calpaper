@@ -15,6 +15,9 @@ if [ -z "$VERSION" ]; then
     echo "Using version from project: ${VERSION}"
 fi
 
+BUILD_NUMBER=$(grep 'CURRENT_PROJECT_VERSION' calpaper.xcodeproj/project.pbxproj | head -1 | sed 's/.*= //;s/;//;s/ //g')
+echo "Build number: ${BUILD_NUMBER}"
+
 APP_NAME="Calpaper"
 SCHEME="calpaper"
 BUILD_DIR="$(pwd)/build"
@@ -135,7 +138,7 @@ cat > "${RELEASE_DIR}/appcast.xml" << APPCAST
     <item>
       <title>Calpaper v${VERSION}</title>
       <pubDate>$(date -R)</pubDate>
-      <sparkle:version>${VERSION}</sparkle:version>
+      <sparkle:version>${BUILD_NUMBER}</sparkle:version>
       <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <description><![CDATA[
