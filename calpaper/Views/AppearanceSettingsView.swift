@@ -94,6 +94,15 @@ struct AppearanceSettingsView: View {
                     .padding(.top, 8)
                 CalendarPreviewView()
                     .padding(8)
+                Button {
+                    wallpaperManager.updateWallpaper()
+                } label: {
+                    Label("Apply to Desktop", systemImage: "desktopcomputer")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
             }
             .frame(minWidth: 220)
         }
