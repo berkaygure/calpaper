@@ -5,26 +5,26 @@
     <link>https://raw.githubusercontent.com/berkaygure/calpaper/main/appcast.xml</link>
     <language>en</language>
     <item>
-      <title>Calpaper v1.0</title>
-      <pubDate>Sat, 21 Mar 2026 13:16:22 +0300</pubDate>
-      <sparkle:version>1.0</sparkle:version>
-      <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+      <title>Calpaper v1.1</title>
+      <pubDate>Sat, 21 Mar 2026 13:46:51 +0300</pubDate>
+      <sparkle:version>1.1</sparkle:version>
+      <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <description><![CDATA[
-        <h2>What's New in v1.0</h2>
+        <h2>What's New in v1.1</h2>
         <ul>
-          <li>Calendar wallpaper with curved split design</li>
-          <li>10 built-in color themes</li>
-          <li>Progress tracker mode</li>
-          <li>EventKit integration</li>
-          <li>Auto-update support</li>
+          <li>Per-display wallpaper settings — different themes for each monitor</li>
+          <li>Apply to Desktop button in settings preview</li>
+          <li>Active theme highlighting in theme grid</li>
+          <li>Improved calendar permission flow with restart prompt</li>
+          <li>Renamed "Update Now" to "Set Wallpaper"</li>
         </ul>
       ]]></description>
       <enclosure
-        url="https://github.com/berkaygure/calpaper/releases/download/v1.0/Calpaper-v1.0.dmg"
-        length="1691331"
+        url="https://github.com/berkaygure/calpaper/releases/download/v1.1/Calpaper-v1.1.dmg"
+        length="1775926"
         type="application/octet-stream"
-        sparkle:edSignature="6YdYTcsgs/fjAGQpQrFRWV7Ba8OgLU5BGv1APCEF3x0pXte7/+qi6G54f5zpty+bXgjzFy8olryVfOYCTm6mAw=="
+        sparkle:edSignature="lcf5uQqUfb82gP7pvNXu/uJsSVV6SHYZdXPOThwOT4gGj0iUgWWjFKwT3JdbcgAGv6wJi8UNExXyu1+DR7isAQ=="
       />
     </item>
   </channel>
