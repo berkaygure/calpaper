@@ -9,15 +9,61 @@ struct AppearanceSettingsView: View {
     @State private var newThemeName = ""
     @State private var themes: [CalendarTheme] = ThemeStore.allThemes()
 
+    // Display selection
+    @State private var selectedDisplayID: String = "all"
+    @State private var screens: [NSScreen] = NSScreen.screens
+    @State private var profile: DisplayProfile?
+
+    private var isPerDisplay: Bool { selectedDisplayID != "all" }
+
     var body: some View {
         @Bindable var settings = wallpaperManager.settings
 
         HSplitView {
             ScrollView {
                 Form {
+                    // Display picker — only show if multiple displays
+                    if screens.count > 1 {
+                        Section("Display") {
+                            Picker("Configure for", selection: $selectedDisplayID) {
+                                Text("All Displays").tag("all")
+                                ForEach(screens, id: \.displayID) { screen in
+                                    HStack {
+                                        Text(screen.displayName)
+                                        if screen == NSScreen.main {
+                                            Text("(Main)")
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .tag(screen.displayID)
+                                }
+                            }
+
+                            if isPerDisplay {
+                                if profile != nil {
+                                    Button("Reset to Global Settings", role: .destructive) {
+                                        DisplayProfileStore.removeProfile(for: selectedDisplayID)
+                                        profile = nil
+                                    }
+                                    .font(.caption)
+                                } else {
+                                    Text("Using global settings. Change any setting below to create a custom profile for this display.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+
                     Section("Theme") {
                         ThemeGridView(themes: themes, onSelect: { theme in
-                            settings.applyTheme(theme)
+                            if isPerDisplay {
+                                let base = profile ?? DisplayProfile.from(settings: settings)
+                                profile = base.applyTheme(theme)
+                                saveProfile()
+                            } else {
+                                settings.applyTheme(theme)
+                            }
                         }, onDelete: { theme in
                             ThemeStore.deleteTheme(id: theme.id)
                             themes = ThemeStore.allThemes()
@@ -30,7 +76,7 @@ struct AppearanceSettingsView: View {
                     }
 
                     Section("Display Mode") {
-                        Picker("Mode", selection: $settings.displayMode) {
+                        Picker("Mode", selection: displayModeBinding(settings)) {
                             ForEach(CalendarDisplayMode.allCases, id: \.self) { mode in
                                 Text(mode.label).tag(mode)
                             }
@@ -39,7 +85,7 @@ struct AppearanceSettingsView: View {
                     }
 
                     Section("Font") {
-                        Picker("Caption Font", selection: $settings.captionFontName) {
+                        Picker("Caption Font", selection: captionFontBinding(settings)) {
                             ForEach(captionFonts) { font in
                                 Text(font.displayName)
                                     .font(.custom(font.name, size: 14))
@@ -49,38 +95,38 @@ struct AppearanceSettingsView: View {
                     }
 
                     Section("Colors") {
-                        ColorPickerRow(title: "Calendar Background", hex: $settings.backgroundColorHex)
-                        ColorPickerRow(title: "Caption Background", hex: $settings.panelColorHex)
-                        ColorPickerRow(title: "Text", hex: $settings.textColorHex)
-                        ColorPickerRow(title: "Today Highlight", hex: $settings.highlightColorHex)
-                        ColorPickerRow(title: "Weekday Labels", hex: $settings.weekdayColorHex)
-                        ColorPickerRow(title: "Future Days", hex: $settings.futureDayColorHex)
-                        if settings.displayMode == .progressBar {
-                            ColorPickerRow(title: "Completed Days", hex: $settings.pastDayColorHex)
+                        ColorPickerRow(title: "Calendar Background", hex: hexBinding(settings, \.backgroundColorHex))
+                        ColorPickerRow(title: "Caption Background", hex: hexBinding(settings, \.panelColorHex))
+                        ColorPickerRow(title: "Text", hex: hexBinding(settings, \.textColorHex))
+                        ColorPickerRow(title: "Today Highlight", hex: hexBinding(settings, \.highlightColorHex))
+                        ColorPickerRow(title: "Weekday Labels", hex: hexBinding(settings, \.weekdayColorHex))
+                        ColorPickerRow(title: "Future Days", hex: hexBinding(settings, \.futureDayColorHex))
+                        if currentDisplayMode(settings) == .progressBar {
+                            ColorPickerRow(title: "Completed Days", hex: hexBinding(settings, \.pastDayColorHex))
                         }
                     }
 
                     Section("Grid Options") {
-                        Toggle("Show Only Current Month", isOn: $settings.showOnlyCurrentMonth)
-                        Toggle("Show Day Numbers", isOn: $settings.showDayNumbers)
+                        Toggle("Show Only Current Month", isOn: boolBinding(settings, \.showOnlyCurrentMonth))
+                        Toggle("Show Day Numbers", isOn: boolBinding(settings, \.showDayNumbers))
                         HStack {
                             Text("Cell Shape")
-                            Slider(value: $settings.cellCornerRadius, in: 0.0...1.0)
+                            Slider(value: cgFloatBinding(settings, \.cellCornerRadius), in: 0.0...1.0)
                         }
                     }
 
                     Section("Layout") {
                         HStack {
                             Text("Calendar Size")
-                            Slider(value: $settings.calendarScale, in: 0.15...0.6)
+                            Slider(value: cgFloatBinding(settings, \.calendarScale), in: 0.15...0.6)
                         }
                         HStack {
                             Text("Horizontal Position")
-                            Slider(value: $settings.calendarPositionX, in: 0.1...0.9)
+                            Slider(value: cgFloatBinding(settings, \.calendarPositionX), in: 0.1...0.9)
                         }
                         HStack {
                             Text("Vertical Position")
-                            Slider(value: $settings.calendarPositionY, in: 0.1...0.9)
+                            Slider(value: cgFloatBinding(settings, \.calendarPositionY), in: 0.1...0.9)
                         }
                     }
                 }
@@ -92,7 +138,7 @@ struct AppearanceSettingsView: View {
                 Text("Preview")
                     .font(.headline)
                     .padding(.top, 8)
-                CalendarPreviewView()
+                CalendarPreviewView(displayID: isPerDisplay ? selectedDisplayID : nil)
                     .padding(8)
                 Button {
                     wallpaperManager.updateWallpaper()
@@ -107,6 +153,16 @@ struct AppearanceSettingsView: View {
             .frame(minWidth: 220)
         }
         .padding()
+        .onChange(of: selectedDisplayID) { _, newValue in
+            if newValue == "all" {
+                profile = nil
+            } else {
+                profile = DisplayProfileStore.profile(for: newValue)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+            screens = NSScreen.screens
+        }
         .sheet(isPresented: $showSaveThemeSheet) {
             VStack(spacing: 16) {
                 Text("Save Theme")
@@ -119,7 +175,13 @@ struct AppearanceSettingsView: View {
                         showSaveThemeSheet = false
                     }
                     Button("Save") {
-                        let theme = settings.toTheme(name: newThemeName)
+                        let theme: CalendarTheme
+                        if isPerDisplay, let profile {
+                            let s = profile.toSettings()
+                            theme = s.toTheme(name: newThemeName)
+                        } else {
+                            theme = wallpaperManager.settings.toTheme(name: newThemeName)
+                        }
                         ThemeStore.addTheme(theme)
                         themes = ThemeStore.allThemes()
                         showSaveThemeSheet = false
@@ -129,6 +191,183 @@ struct AppearanceSettingsView: View {
                 }
             }
             .padding(24)
+        }
+    }
+
+    // MARK: - Bindings that route to profile or global settings
+
+    private func ensureProfile(_ settings: CalendarSettings) {
+        if isPerDisplay && profile == nil {
+            profile = DisplayProfile.from(settings: settings)
+            saveProfile()
+        }
+    }
+
+    private func saveProfile() {
+        if isPerDisplay, let profile {
+            DisplayProfileStore.setProfile(profile, for: selectedDisplayID)
+        }
+    }
+
+    private func currentDisplayMode(_ settings: CalendarSettings) -> CalendarDisplayMode {
+        if isPerDisplay, let profile {
+            return CalendarDisplayMode(rawValue: profile.displayMode) ?? .currentMonth
+        }
+        return settings.displayMode
+    }
+
+    private func displayModeBinding(_ settings: CalendarSettings) -> Binding<CalendarDisplayMode> {
+        Binding(
+            get: { currentDisplayMode(settings) },
+            set: { newValue in
+                if isPerDisplay {
+                    ensureProfile(settings)
+                    profile?.displayMode = newValue.rawValue
+                    saveProfile()
+                } else {
+                    settings.displayMode = newValue
+                }
+            }
+        )
+    }
+
+    private func captionFontBinding(_ settings: CalendarSettings) -> Binding<String> {
+        Binding(
+            get: {
+                if isPerDisplay, let profile { return profile.captionFontName }
+                return settings.captionFontName
+            },
+            set: { newValue in
+                if isPerDisplay {
+                    ensureProfile(settings)
+                    profile?.captionFontName = newValue
+                    saveProfile()
+                } else {
+                    settings.captionFontName = newValue
+                }
+            }
+        )
+    }
+
+    private func hexBinding(_ settings: CalendarSettings, _ keyPath: WritableKeyPath<CalendarSettings, String>) -> Binding<String> {
+        let profileKeyPath = profileKeyPathForHex(keyPath)
+        return Binding(
+            get: {
+                if isPerDisplay, let profile { return profile[keyPath: profileKeyPath] }
+                return settings[keyPath: keyPath]
+            },
+            set: { newValue in
+                if isPerDisplay {
+                    ensureProfile(settings)
+                    profile?[keyPath: profileKeyPath] = newValue
+                    saveProfile()
+                } else {
+                    setSettingsString(settings, keyPath, newValue)
+                }
+            }
+        )
+    }
+
+    private func boolBinding(_ settings: CalendarSettings, _ keyPath: WritableKeyPath<CalendarSettings, Bool>) -> Binding<Bool> {
+        let profileKeyPath = profileKeyPathForBool(keyPath)
+        return Binding(
+            get: {
+                if isPerDisplay, let profile { return profile[keyPath: profileKeyPath] }
+                return settings[keyPath: keyPath]
+            },
+            set: { newValue in
+                if isPerDisplay {
+                    ensureProfile(settings)
+                    profile?[keyPath: profileKeyPath] = newValue
+                    saveProfile()
+                } else {
+                    setSettingsBool(settings, keyPath, newValue)
+                }
+            }
+        )
+    }
+
+    private func cgFloatBinding(_ settings: CalendarSettings, _ keyPath: WritableKeyPath<CalendarSettings, CGFloat>) -> Binding<CGFloat> {
+        let profileKeyPath = profileKeyPathForCGFloat(keyPath)
+        return Binding(
+            get: {
+                if isPerDisplay, let profile { return profile[keyPath: profileKeyPath] }
+                return settings[keyPath: keyPath]
+            },
+            set: { newValue in
+                if isPerDisplay {
+                    ensureProfile(settings)
+                    profile?[keyPath: profileKeyPath] = newValue
+                    saveProfile()
+                } else {
+                    setSettingsCGFloat(settings, keyPath, newValue)
+                }
+            }
+        )
+    }
+
+    // Direct property setters to avoid subscript assignment issues with @Observable
+    private func setSettingsString(_ s: CalendarSettings, _ kp: WritableKeyPath<CalendarSettings, String>, _ v: String) {
+        switch kp {
+        case \.backgroundColorHex: s.backgroundColorHex = v
+        case \.textColorHex: s.textColorHex = v
+        case \.highlightColorHex: s.highlightColorHex = v
+        case \.weekdayColorHex: s.weekdayColorHex = v
+        case \.pastDayColorHex: s.pastDayColorHex = v
+        case \.futureDayColorHex: s.futureDayColorHex = v
+        case \.panelColorHex: s.panelColorHex = v
+        default: break
+        }
+    }
+
+    private func setSettingsBool(_ s: CalendarSettings, _ kp: WritableKeyPath<CalendarSettings, Bool>, _ v: Bool) {
+        switch kp {
+        case \.showOnlyCurrentMonth: s.showOnlyCurrentMonth = v
+        case \.showDayNumbers: s.showDayNumbers = v
+        default: break
+        }
+    }
+
+    private func setSettingsCGFloat(_ s: CalendarSettings, _ kp: WritableKeyPath<CalendarSettings, CGFloat>, _ v: CGFloat) {
+        switch kp {
+        case \.cellCornerRadius: s.cellCornerRadius = v
+        case \.calendarScale: s.calendarScale = v
+        case \.calendarPositionX: s.calendarPositionX = v
+        case \.calendarPositionY: s.calendarPositionY = v
+        default: break
+        }
+    }
+
+    // MARK: - KeyPath mapping
+
+    private func profileKeyPathForHex(_ kp: WritableKeyPath<CalendarSettings, String>) -> WritableKeyPath<DisplayProfile, String> {
+        switch kp {
+        case \.backgroundColorHex: return \.backgroundColorHex
+        case \.textColorHex: return \.textColorHex
+        case \.highlightColorHex: return \.highlightColorHex
+        case \.weekdayColorHex: return \.weekdayColorHex
+        case \.pastDayColorHex: return \.pastDayColorHex
+        case \.futureDayColorHex: return \.futureDayColorHex
+        case \.panelColorHex: return \.panelColorHex
+        default: return \.backgroundColorHex
+        }
+    }
+
+    private func profileKeyPathForBool(_ kp: WritableKeyPath<CalendarSettings, Bool>) -> WritableKeyPath<DisplayProfile, Bool> {
+        switch kp {
+        case \.showOnlyCurrentMonth: return \.showOnlyCurrentMonth
+        case \.showDayNumbers: return \.showDayNumbers
+        default: return \.showOnlyCurrentMonth
+        }
+    }
+
+    private func profileKeyPathForCGFloat(_ kp: WritableKeyPath<CalendarSettings, CGFloat>) -> WritableKeyPath<DisplayProfile, CGFloat> {
+        switch kp {
+        case \.cellCornerRadius: return \.cellCornerRadius
+        case \.calendarScale: return \.calendarScale
+        case \.calendarPositionX: return \.calendarPositionX
+        case \.calendarPositionY: return \.calendarPositionY
+        default: return \.calendarScale
         }
     }
 }
@@ -165,12 +404,10 @@ struct ThemeSwatchView: View {
     var body: some View {
         VStack(spacing: 2) {
             ZStack {
-                // Background split
                 HStack(spacing: 0) {
                     Color(nsColor: NSColor(hex: theme.panelColorHex))
                     Color(nsColor: NSColor(hex: theme.backgroundColorHex))
                 }
-                // Dots preview
                 HStack(spacing: 2) {
                     Circle()
                         .fill(Color(nsColor: NSColor(hex: theme.pastDayColorHex)))

@@ -7,7 +7,6 @@ final class WallpaperManager {
     let calendarService: CalendarService
     let scheduler: SchedulerService
     private let displayManager = DisplayManager()
-    private let renderer: CalendarRenderer
 
     var lastUpdated: Date?
     var previewImage: NSImage?
@@ -16,7 +15,6 @@ final class WallpaperManager {
         self.settings = settings
         self.calendarService = calendarService
         self.scheduler = SchedulerService()
-        self.renderer = CalendarRenderer(settings: settings)
 
         scheduler.onUpdate = { [weak self] in
             self?.updateWallpaper()
@@ -31,7 +29,6 @@ final class WallpaperManager {
     func updateWallpaper() {
         var month = CalendarMonth.build()
 
-        // Fetch events if enabled
         if settings.showEvents && calendarService.authorizationStatus == .fullAccess {
             let eventsByDate = calendarService.fetchEvents(for: month, calendarIDs: settings.selectedCalendarIDs)
             let calendar = Calendar.current
@@ -47,7 +44,6 @@ final class WallpaperManager {
             }
         }
 
-        // Collect today's events for the caption area
         let todayEvents = todayEventsFrom(month: month)
 
         // Clean up old wallpapers
@@ -60,17 +56,25 @@ final class WallpaperManager {
 
         let allScreens = displayManager.screens
         let enabledIDs = settings.enabledDisplayIDs
-        // Empty set = all displays enabled (default behavior)
         let screens = allScreens.filter { screen in
             enabledIDs.isEmpty || enabledIDs.contains(screen.displayID)
         }
 
+        let displayProfiles = DisplayProfileStore.load()
         var imageURLs: [NSScreen: URL] = [:]
         let timestamp = Int(Date().timeIntervalSince1970)
 
         for (index, screen) in screens.enumerated() {
             let size = screen.frame.size
             let scaleFactor = screen.backingScaleFactor
+
+            // Use per-display profile if available, otherwise global settings
+            let renderer: CalendarRenderer
+            if let profile = displayProfiles[screen.displayID] {
+                renderer = CalendarRenderer(settings: profile.toSettings())
+            } else {
+                renderer = CalendarRenderer(settings: settings)
+            }
 
             let image = renderer.render(month: month, screenSize: size, scaleFactor: scaleFactor, todayEvents: todayEvents)
 
@@ -103,7 +107,7 @@ final class WallpaperManager {
         }
     }
 
-    func generatePreview(size: NSSize) -> NSImage {
+    func generatePreview(size: NSSize, displayID: String? = nil) -> NSImage {
         var month = CalendarMonth.build()
 
         if settings.showEvents && calendarService.authorizationStatus == .fullAccess {
@@ -122,6 +126,14 @@ final class WallpaperManager {
         }
 
         let todayEvents = todayEventsFrom(month: month)
+
+        let renderer: CalendarRenderer
+        if let displayID, let profile = DisplayProfileStore.profile(for: displayID) {
+            renderer = CalendarRenderer(settings: profile.toSettings())
+        } else {
+            renderer = CalendarRenderer(settings: settings)
+        }
+
         return renderer.render(month: month, screenSize: size, todayEvents: todayEvents)
     }
 
