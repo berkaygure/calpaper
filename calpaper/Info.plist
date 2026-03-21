@@ -4,5 +4,11 @@
 <dict>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Calpaper needs access to your calendars to display events on the calendar wallpaper.</string>
+	<key>SUFeedURL</key>
+	<string>https://berkaygure.github.io/calpaper/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string></string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>

@@ -5,6 +5,7 @@ struct calpaperApp: App {
     @State private var settings = CalendarSettings()
     @State private var calendarService = CalendarService()
     @State private var wallpaperManager: WallpaperManager?
+    @State private var updaterService = UpdaterService()
 
     var body: some Scene {
         MenuBarExtra("Calpaper", systemImage: "calendar") {
@@ -12,6 +13,7 @@ struct calpaperApp: App {
                 MenuBarPopover()
                     .environment(wallpaperManager)
                     .environment(calendarService)
+                    .environment(updaterService)
             } else {
                 ProgressView("Loading...")
                     .padding()
@@ -24,6 +26,7 @@ struct calpaperApp: App {
                 SettingsView()
                     .environment(wallpaperManager)
                     .environment(calendarService)
+                    .environment(updaterService)
             }
         }
     }
