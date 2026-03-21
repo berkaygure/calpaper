@@ -56,7 +56,7 @@ open calpaper.xcodeproj
 ## Usage
 
 1. **Click the calendar icon** in the menu bar to see a preview
-2. **"Update Now"** applies the wallpaper immediately
+2. **"Set Wallpaper"** applies the wallpaper immediately
 3. **Settings (gear icon)** opens the preferences window:
    - **Appearance** — Theme selection, colors, font, grid options, layout
    - **Calendars** — Toggle which calendars to show events from

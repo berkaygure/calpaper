@@ -17,7 +17,7 @@ struct MenuBarPopover: View {
             }
 
             HStack(spacing: 8) {
-                Button("Update Now") {
+                Button("Set Wallpaper") {
                     wallpaperManager.updateWallpaper()
                 }
                 .buttonStyle(.borderedProminent)
