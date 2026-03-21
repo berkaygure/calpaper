@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # --- Configuration ---
-APP_NAME="calpaper"
+APP_NAME="Calpaper"
 VERSION="1.0"
 SCHEME="calpaper"
 BUILD_DIR="$(pwd)/build"
