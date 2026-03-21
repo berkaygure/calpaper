@@ -20,11 +20,22 @@ A macOS menu bar app that turns your desktop into a beautiful calendar wallpaper
 
 ## Screenshots
 
-### Wallpaper
-The wallpaper features a curved split design with the month name on the left and a dot-grid calendar on the right.
+<p align="center">
+  <img src=".github/assets/01.png" width="320" alt="Menu Bar Popover">
+</p>
+<p align="center"><em>Menu bar popover with wallpaper preview, update button, and quick actions</em></p>
 
-### Settings
-Customize everything: colors, fonts, layout position, calendar size, cell shape, and more.
+<p align="center">
+  <img src=".github/assets/02.png" width="600" alt="Theme Selection">
+  <br>
+  <img src=".github/assets/03.png" width="600" alt="Color & Font Settings">
+</p>
+<p align="center"><em>10 built-in themes, display modes, fully customizable colors and fonts with live preview</em></p>
+
+<p align="center">
+  <img src=".github/assets/04.png" width="480" alt="Calendar Selection">
+</p>
+<p align="center"><em>Select which calendars to show — supports Apple, Google, Outlook, and any calendar synced to macOS</em></p>
 
 ## Installation
 
