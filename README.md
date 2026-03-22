@@ -2,7 +2,7 @@
 
 A macOS menu bar app that turns your desktop into a beautiful calendar wallpaper.
 
-![Calpaper Preview](https://img.shields.io/badge/macOS-14.0+-blue) ![Version](https://img.shields.io/badge/version-1.0-green) ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![macOS](https://img.shields.io/badge/macOS-14.0+-blue)](https://berkaygure.github.io/calpaper/) [![Version](https://img.shields.io/badge/version-1.2.1-green)](https://github.com/berkaygure/calpaper/releases/latest) [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE) [![Website](https://img.shields.io/badge/website-berkaygure.github.io/calpaper-89B4FA)](https://berkaygure.github.io/calpaper/)
 
 ## Features
 
