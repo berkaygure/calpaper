@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calpaper — Calendar Wallpaper for macOS</title>
+    <meta name="description" content="A macOS menu bar app that turns your desktop into a beautiful calendar wallpaper with themes, events, and per-display settings.">
+    <meta property="og:title" content="Calpaper — Calendar Wallpaper for macOS">
+    <meta property="og:description" content="Beautiful calendar wallpapers for your Mac desktop. 10 themes, handwriting fonts, event integration.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://berkaygure.github.io/calpaper/">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0e0e14;
+            --bg-card: #1a1a24;
+            --bg-card-hover: #22222e;
+            --text: #e0e0ec;
+            --text-dim: #8888a0;
+            --accent: #89B4FA;
+            --accent-hover: #a6c8ff;
+            --highlight: #EB6F92;
+            --border: #2a2a3a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            background: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, var(--bg) 70%);
+        }
+
+        .hero-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #1e1e2e, #2a2a3c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            font-size: 40px;
+            font-family: 'Snell Roundhand', 'Georgia', serif;
+            color: var(--text);
+            position: relative;
+        }
+
+        .hero-icon::after {
+            content: '•••';
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            font-family: system-ui;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent), var(--highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            max-width: 540px;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.8rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0e0e14;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(137, 180, 250, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Screenshots */
+        .screenshots {
+            padding: 4rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .screenshots h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .screenshot-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .screenshot-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .screenshot-item.full-width {
+            grid-column: 1 / -1;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screenshot-item img {
+            width: 100%;
+            display: block;
+        }
+
+        .screenshot-item .caption {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        /* Features */
+        .features {
+            padding: 4rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+        }
+
+        .feature-card .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .feature-card p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* Themes */
+        .themes {
+            padding: 4rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .themes h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .themes p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .theme-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+        }
+
+        .theme-swatch {
+            width: 80px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .theme-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-swatch .left { width: 50%; }
+        .theme-swatch .right { width: 50%; display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .theme-swatch .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        .theme-name {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+        }
+
+        /* Install */
+        .install {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .install h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .install p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .install-steps {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step .number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .step span {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .requirements {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 2.2rem; }
+            .hero p { font-size: 1.1rem; }
+            .screenshot-grid { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<section class="hero">
+    <div class="hero-icon">C</div>
+    <div class="badge">Free &amp; Open Source</div>
+    <h1><span>Calpaper</span></h1>
+    <p>A macOS menu bar app that turns your desktop into a beautiful calendar wallpaper.</p>
+    <div class="hero-buttons">
+        <a href="https://github.com/berkaygure/calpaper/releases/latest" class="btn btn-primary">
+            Download for macOS
+        </a>
+        <a href="https://github.com/berkaygure/calpaper" class="btn btn-secondary">
+            View on GitHub
+        </a>
+    </div>
+</section>
+
+<section class="screenshots">
+    <h2>See it in action</h2>
+    <div class="screenshot-grid">
+        <div class="screenshot-item full-width">
+            <img src="https://raw.githubusercontent.com/berkaygure/calpaper/main/.github/assets/01.png" alt="Menu bar popover">
+            <div class="caption">Menu bar popover with wallpaper preview</div>
+        </div>
+        <div class="screenshot-item">
+            <img src="https://raw.githubusercontent.com/berkaygure/calpaper/main/.github/assets/02.png" alt="Theme selection">
+            <div class="caption">10 built-in themes with live preview</div>
+        </div>
+        <div class="screenshot-item">
+            <img src="https://raw.githubusercontent.com/berkaygure/calpaper/main/.github/assets/03.png" alt="Color settings">
+            <div class="caption">Fully customizable colors and fonts</div>
+        </div>
+        <div class="screenshot-item full-width">
+            <img src="https://raw.githubusercontent.com/berkaygure/calpaper/main/.github/assets/04.png" alt="Calendar selection">
+            <div class="caption">Select calendars from any account</div>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <h2>Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="icon">🎨</div>
+            <h3>10 Built-in Themes</h3>
+            <p>Catppuccin, Nord, Dracula, Gruvbox, Rosé Pine, and more. Or create your own.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">✍️</div>
+            <h3>Handwriting Fonts</h3>
+            <p>Elegant month display with Snell Roundhand, Zapfino, Bradley Hand, and other script fonts.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">📊</div>
+            <h3>Progress Tracker</h3>
+            <p>Past days highlighted with a different color — your calendar becomes a visual progress bar.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">📅</div>
+            <h3>Event Integration</h3>
+            <p>Today's events from Apple, Google, and Outlook calendars shown right on the wallpaper.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">🖥️</div>
+            <h3>Per-Display Settings</h3>
+            <p>Different themes and layouts for each connected monitor. Retina-ready rendering.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon">🔄</div>
+            <h3>Auto-Update</h3>
+            <p>Wallpaper refreshes at midnight, on wake, and when displays change. App updates via Sparkle.</p>
+        </div>
+    </div>
+</section>
+
+<section class="themes">
+    <h2>Themes</h2>
+    <p>Choose from beautiful built-in color schemes or create your own</p>
+    <div class="theme-grid">
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#2A2A3C"></div>
+                <div class="right" style="background:#1E1E2E">
+                    <div class="dot" style="background:#313244"></div>
+                    <div class="dot" style="background:#89B4FA"></div>
+                    <div class="dot" style="background:#45475A"></div>
+                </div>
+            </div>
+            <div class="theme-name">Catppuccin</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#221C14"></div>
+                <div class="right" style="background:#1A1410">
+                    <div class="dot" style="background:#2D2418"></div>
+                    <div class="dot" style="background:#E8913A"></div>
+                    <div class="dot" style="background:#3A2F22"></div>
+                </div>
+            </div>
+            <div class="theme-name">Midnight Amber</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#353B49"></div>
+                <div class="right" style="background:#2E3440">
+                    <div class="dot" style="background:#3B4252"></div>
+                    <div class="dot" style="background:#88C0D0"></div>
+                    <div class="dot" style="background:#434C5E"></div>
+                </div>
+            </div>
+            <div class="theme-name">Nordic Frost</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#1F1D2E"></div>
+                <div class="right" style="background:#191724">
+                    <div class="dot" style="background:#26233A"></div>
+                    <div class="dot" style="background:#EB6F92"></div>
+                    <div class="dot" style="background:#2A2740"></div>
+                </div>
+            </div>
+            <div class="theme-name">Rosé Pine</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#2F3143"></div>
+                <div class="right" style="background:#282A36">
+                    <div class="dot" style="background:#343746"></div>
+                    <div class="dot" style="background:#BD93F9"></div>
+                    <div class="dot" style="background:#3C3F58"></div>
+                </div>
+            </div>
+            <div class="theme-name">Dracula</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#32302F"></div>
+                <div class="right" style="background:#282828">
+                    <div class="dot" style="background:#3C3836"></div>
+                    <div class="dot" style="background:#FABD2F"></div>
+                    <div class="dot" style="background:#504945"></div>
+                </div>
+            </div>
+            <div class="theme-name">Gruvbox</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#0E2030"></div>
+                <div class="right" style="background:#0B1929">
+                    <div class="dot" style="background:#112840"></div>
+                    <div class="dot" style="background:#4DD0E1"></div>
+                    <div class="dot" style="background:#1A3550"></div>
+                </div>
+            </div>
+            <div class="theme-name">Ocean Breeze</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#EAEAE5"></div>
+                <div class="right" style="background:#F5F5F0">
+                    <div class="dot" style="background:#E8E8E3"></div>
+                    <div class="dot" style="background:#E05050"></div>
+                    <div class="dot" style="background:#EDEDEA"></div>
+                </div>
+            </div>
+            <div class="theme-name">Minimal Light</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#1F2030"></div>
+                <div class="right" style="background:#1A1B26">
+                    <div class="dot" style="background:#24283B"></div>
+                    <div class="dot" style="background:#7AA2F7"></div>
+                    <div class="dot" style="background:#292E42"></div>
+                </div>
+            </div>
+            <div class="theme-name">Tokyo Night</div>
+        </div>
+        <div>
+            <div class="theme-swatch">
+                <div class="left" style="background:#05313C"></div>
+                <div class="right" style="background:#002B36">
+                    <div class="dot" style="background:#073642"></div>
+                    <div class="dot" style="background:#B58900"></div>
+                    <div class="dot" style="background:#0A3F4C"></div>
+                </div>
+            </div>
+            <div class="theme-name">Solarized</div>
+        </div>
+    </div>
+</section>
+
+<section class="install">
+    <h2>Get Started</h2>
+    <p>Download, install, and your desktop transforms in seconds.</p>
+    <div class="install-steps">
+        <div class="step">
+            <div class="number">1</div>
+            <span>Download DMG</span>
+        </div>
+        <div class="step">
+            <div class="number">2</div>
+            <span>Drag to Applications</span>
+        </div>
+        <div class="step">
+            <div class="number">3</div>
+            <span>Click the menu bar icon</span>
+        </div>
+    </div>
+    <a href="https://github.com/berkaygure/calpaper/releases/latest" class="btn btn-primary">
+        Download Calpaper
+    </a>
+    <div class="requirements">Requires macOS 14.0 or later</div>
+</section>
+
+<footer>
+    <p>
+        Made by <a href="https://github.com/berkaygure">Berkay Güre</a> &middot;
+        <a href="https://github.com/berkaygure/calpaper">GitHub</a> &middot;
+        MIT License
+    </p>
+</footer>
+
+</body>
+</html>
